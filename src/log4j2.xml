@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!--Configuration后面的status，这个用于设置**log4j2自身内部**的信息输出，可以不设置，当设置成trace时，你会看到log4j2内部各种详细输出 -->
+<!--monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数 -->
+<configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <property name="FILE_NAME" value="AlarmFace" />
+        <property name="FILE_PATH" value="./logs" />
+        <property name="LOG_PATTERN" value="%-d{yyyy-MM-dd HH:mm:ss} [${FILE_NAME}] [%-5level] [%logger{36}] [%L] %msg%n" />
+    </Properties>
+
+    <!--先定义所有的appender -->
+    <appenders>
+        <!--控制台输出配置 -->
+        <console name="logConsole" target="SYSTEM_OUT">
+            <!--输出日志的格式 -->
+            <PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}"/>
+        </console>
+
+        <!-- 文件输出配置 -->
+        <RollingFile name="logFileDebug"
+                     fileName="${FILE_PATH}/${FILE_NAME}_debug.log"
+                     filePattern="${FILE_PATH}/%d{yyyy-MM-dd}/${FILE_NAME}-%d{yyyy-MM-dd}_debug.log.gz">
+            <Filters>
+                <ThresholdFilter level="info" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <!--interval属性用来指定多久滚动一次，默认是1 hour，
+	        	如果filePattern 是%d{yyyy-MM-dd}，则 interval="1"表示1天，
+	        	如果是%d{yyyy-MM-dd-HH-mm}，则 interval="1"表示1分钟，
+	        	如果设置 size="10MB" ，则一个interval单位内，日志超过10m，则也会滚动压缩-->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="logFileInfo"
+                     fileName="${FILE_PATH}/${FILE_NAME}_info.log"
+                     filePattern="${FILE_PATH}/%d{yyyy-MM-dd}/${FILE_NAME}-%d{yyyy-MM-dd}_info.log.gz">
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="logFileError"
+                     fileName="${FILE_PATH}/${FILE_NAME}_error.log"
+                     filePattern="${FILE_PATH}/%d{yyyy-MM-dd}/${FILE_NAME}-%d{yyyy-MM-dd}_error.log.gz">
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+        </RollingFile>
+    </appenders>
+    <!--然后定义logger，只有定义了logger并引入的appender，appender才会生效 -->
+    <loggers>
+        <root level="info">
+            <appender-ref ref="logConsole"/>
+            <appender-ref ref="logFileDebug"/>
+            <appender-ref ref="logFileInfo"/>
+            <appender-ref ref="logFileError"/>
+        </root>
+        <!--指定具体的包记录的日志级别 -->
+        <!-- <logger name="org.springframework" level="warn"/> -->
+        <!-- <logger name="com.hz" level="debug"/> -->
+    </loggers>
+</configuration>
